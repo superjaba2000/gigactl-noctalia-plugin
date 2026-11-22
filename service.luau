@@ -1,9 +1,42 @@
-function pleaseSetProfile(profile)
+local function setFanSpeed(speed)
+    speed = tonumber(speed)
+
+    if not speed or speed < 0 or speed > 100 then
+        noctalia.notify("Invalid fan speed")
+        return
+    end
+
+    speed = math.floor(speed)
+
+    noctalia.runAsync({
+        "busctl",
+        "--system",
+        "call",
+        "io.github.smairio.gigactl",
+        "/io/github/smairio/gigactl",
+        "io.github.smairio.gigactl.Control",
+        "SetFanDuty",
+        "uu",
+        "0",
+        tostring(speed),
+    }, function(result)
+        if result.exitCode ~= 0 then
+            noctalia.notify("Failed to set fan speed")
+            return
+        end
+
+        noctalia.state.set("manual-fan-speed", speed)
+        noctalia.state.set("active-profile", "manual")
+    end)
+end
+
+local function pleaseSetProfile(profile)
     local labels = {
         quiet = "Quiet",
         balanced = "Balanced",
         performance = "Performance",
         max = "MAX",
+        manual = "Manual",
     }
 
     local label = labels[profile]
@@ -15,21 +48,28 @@ function pleaseSetProfile(profile)
 
     noctalia.state.set("active-profile", profile)
 
-    local ok = noctalia.runAsync({
-        "busctl",
-        "--system",
-        "call",
-        "io.github.smairio.gigactl",
-        "/io/github/smairio/gigactl",
-        "io.github.smairio.gigactl.Control",
-        "SetProfile",
-        "s",
-        profile,
-    })
+    if profile == "manual" then
+        local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
 
-    if not ok then
-        noctalia.notify("Failed to start busctl")
-        return
+        local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
+        setFanSpeed(fanSpeed)
+    else
+        local ok = noctalia.runAsync({
+            "busctl",
+            "--system",
+            "call",
+            "io.github.smairio.gigactl",
+            "/io/github/smairio/gigactl",
+            "io.github.smairio.gigactl.Control",
+            "SetProfile",
+            "s",
+            profile,
+        })
+
+        if not ok then
+            noctalia.notify("Failed to start busctl")
+            return
+        end
     end
 
     noctalia.runAsync({
@@ -55,11 +95,15 @@ end
 
 
 function onIpc(event, payload)
-    if event ~= "please-set-profile" then
+    if event == "please-set-profile" then
+        pleaseSetProfile(payload)
         return
     end
 
-    pleaseSetProfile(payload)
+    if event == "set-fan-speed" then
+        setFanSpeed(payload)
+        return
+    end
 end
 
 local UPDATE_INTERVAL = 2000

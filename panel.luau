@@ -1,5 +1,6 @@
 local function createPanel()
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
+    local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 0
 
     return ui.column({
         gap = 12,
@@ -12,43 +13,69 @@ local function createPanel()
                 text = "Quiet",
                 flexGrow = 1,
                 selected = activeProfile == "quiet",
-                onClick = function() pleaseSetProfile("quiet") end,
+                onClick = function() 
+                    pleaseSetProfile("quiet") 
+                end,
             }),
             ui.button({
                 text = "Balanced",
                 flexGrow = 1,
                 selected = activeProfile == "balanced",
-                onClick = function() pleaseSetProfile("balanced") end,
+                onClick = function() 
+                    pleaseSetProfile("balanced") 
+                end,
             }),
             ui.button({
                 text = "Performance",
                 flexGrow = 1,
                 selected = activeProfile == "performance",
-                onClick = function() pleaseSetProfile("performance") end,
+                onClick = function() 
+                    pleaseSetProfile("performance") 
+                end,
             }),
             ui.button({
                 text = "MAX",
                 flexGrow = 1,
                 selected = activeProfile == "max",
-                onClick = function() pleaseSetProfile("max") end,
+                onClick = function() 
+                    pleaseSetProfile("max") 
+                end,
             }),
         }),
 
         ui.row({ gap = 18, align = "center" }, {
             ui.button({
-                text = "custom",
+                text = "manual",
                 flexGrow = 1,
-                --selected = activeProfile == "max",
-                --onClick = function() pleaseSetProfile("max") end,
+                selected = activeProfile == "manual",
+                onClick = function() 
+                    pleaseSetProfile("manual") 
+                end,
             }),
+
             ui.slider({
-                --value = fanSpeed,
+                value = manualFanSpeed,
                 min = 0,
                 max = 100,
                 step = 1,
                 flexGrow = 3,
+
                 onChange = function(value)
-                    --fanSpeed = tonumber(value)
+                    noctalia.state.set("manual-fan-speed", tonumber(value))
+                end,
+
+                onDragEnd = function()
+                    local speed = noctalia.state.get("manual-fan-speed") or 0
+
+                    noctalia.runAsync({
+                        "noctalia",
+                        "msg",
+                        "plugin",
+                        "superjaba2000/gigactl:service",
+                        "all",
+                        "set-fan-speed",
+                        tostring(speed),
+                    })
                 end,
             })
         }),
