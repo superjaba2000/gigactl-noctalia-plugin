@@ -19,6 +19,8 @@
     "fan_error": "Failed to set fan speed after several attempts. Check the log.",
     "unknown_profile": "Unknown cooling profile: ",
     "profile_error": "Failed to set cooling profile: ",
-    "read_profile_error": "Failed to read the active cooling profile."
+    "read_profile_error": "Failed to read the active cooling profile.",
+    "invalid_brightness": "Invalid keyboard brightness.",
+    "brightness_error": "Failed to set keyboard brightness: "
   }
 }

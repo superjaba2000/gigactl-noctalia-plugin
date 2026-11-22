@@ -9,6 +9,38 @@ end
 local fanSpeedBusy = false
 local pendingFanSpeed = nil
 
+local function pleaseSetBrightness(brightness)
+    brightness = tonumber(brightness)
+
+    if not brightness or brightness < 0 or brightness > 255 then
+        noctalia.notify(noctalia.tr("messages.invalid_brightness"))
+        return
+    end
+
+    brightness = math.floor(brightness)
+
+    noctalia.runAsync({
+        "busctl",
+        "--system",
+        "call",
+        "io.github.smairio.gigactl",
+        "/io/github/smairio/gigactl",
+        "io.github.smairio.gigactl.Control",
+        "SetKeyboardBrightness",
+        "u",
+        tostring(brightness),
+    }, function(result)
+        if result.exitCode ~= 0 then
+            noctalia.notify(noctalia.tr("messages.brightness_error") .. tostring(result.stderr))
+            noctalia.log("gigactl: failed to set keyboard brightness to " .. tostring(brightness) .. ": " .. tostring(result.stderr))
+            return
+        end
+
+        noctalia.state.set("keyboard-brightness", brightness)
+        sendToPanelAndWidget("set-keyboard-brightness", tostring(brightness))
+    end)
+end
+
 local function pleaseSetFanSpeed(speed, attempt)
     speed = tonumber(speed)
     attempt = attempt or 1
@@ -141,6 +173,11 @@ function onIpc(event, payload)
 
     if event == "please-set-fan-speed" then
         pleaseSetFanSpeed(payload)
+        return
+    end
+
+    if event == "please-set-keyboard-brightness" then
+        pleaseSetBrightness(payload)
         return
     end
 end

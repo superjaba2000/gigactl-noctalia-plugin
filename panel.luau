@@ -140,7 +140,7 @@ local function createPanel()
 end
 
 function onIpc(event, payload)
-    if event == "set-profile" or event == "set-fan-speed" then
+    if event == "set-profile" or event == "set-fan-speed" or event == "set-keyboard-brightness" then
         panel.render(createPanel())
     end
 end
