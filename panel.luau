@@ -12,14 +12,17 @@ local function createPanel()
         gap = 12,
         padding = 16,
     }, {
+
+        -- COOLING PROFILES
+
         ui.row({ gap = 8, align = "center" }, {
-            ui.glyph({ name = "gauge", size = 18, color = "text-muted"}),
-            ui.label({ text = noctalia.tr("panel.title"), fontStyle = "bold" }),
+            ui.glyph({ name = "car-fan", size = 18, color = "text-muted"}),
+            ui.label({ text = noctalia.tr("panel.cooling.title"), fontStyle = "bold" }),
         }),
 
         ui.row({ gap = 8, align = "center" }, {
             ui.button({
-                text = noctalia.tr("panel.quiet"),
+                text = noctalia.tr("panel.cooling.quiet"),
                 flexGrow = 1,
                 selected = activeProfile == "quiet",
                 onClick = function() 
@@ -27,7 +30,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = noctalia.tr("panel.balanced"),
+                text = noctalia.tr("panel.cooling.balanced"),
                 flexGrow = 1,
                 selected = activeProfile == "balanced",
                 onClick = function() 
@@ -35,7 +38,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = noctalia.tr("panel.performance"),
+                text = noctalia.tr("panel.cooling.performance"),
                 flexGrow = 1,
                 selected = activeProfile == "performance",
                 onClick = function() 
@@ -43,7 +46,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = noctalia.tr("panel.max"),
+                text = noctalia.tr("panel.cooling.max"),
                 flexGrow = 1,
                 selected = activeProfile == "max",
                 onClick = function() 
@@ -54,7 +57,7 @@ local function createPanel()
 
         ui.row({ gap = 24, align = "center" }, {
             ui.button({
-                text = noctalia.tr("panel.manual"),
+                text = noctalia.tr("panel.cooling.manual"),
                 flexGrow = 1,
                 selected = activeProfile == "manual",
                 onClick = function() 
@@ -89,6 +92,14 @@ local function createPanel()
                 }),
             }),
         }),
+
+        -- KEYBOARD BACKLIGHT
+
+        ui.row({ gap = 8, align = "center" }, {
+            ui.glyph({ name = "keyboard", size = 18, color = "text-muted"}),
+            ui.label({ text = noctalia.tr("panel.keyboard.title"), fontStyle = "bold" }),
+        }),
+
     })
 end
 

@@ -1,12 +1,17 @@
 {
   "panel": {
-    "title": "Cooling profile",
-    "quiet": "Quiet",
-    "balanced": "Balanced",
-    "performance": "Performance",
-    "max": "MAX",
-    "manual": "Manual",
-    "fan_speed": "Fan speed"
+    "cooling": {
+      "title": "Cooling profile",
+      "quiet": "Quiet",
+      "balanced": "Balanced",
+      "performance": "Performance",
+      "max": "MAX",
+      "manual": "Manual",
+      "fan_speed": "Fan speed"
+    },
+    "keyboard": {
+      "title": "Keyboard backlight"
+    }
   },
   "messages": {
     "invalid_speed": "Invalid fan speed.",
