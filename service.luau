@@ -1,6 +1,59 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
 local MAX_FAN_ATTEMPTS = 3
 
+local function increaseSaturation(r, g, b, factor)
+    r, g, b = r / 255, g / 255, b / 255
+
+    local max = math.max(r, g, b)
+    local min = math.min(r, g, b)
+    local delta = max - min
+
+    local h, s, v = 0, 0, max
+
+    if max ~= 0 then
+        s = delta / max
+    end
+
+    if delta ~= 0 then
+        if max == r then
+            h = ((g - b) / delta) % 6
+        elseif max == g then
+            h = (b - r) / delta + 2
+        else
+            h = (r - g) / delta + 4
+        end
+
+        h = h * 60
+    end
+
+    s = math.min(1, s * factor)
+
+    local c = v * s
+    local x = c * (1 - math.abs((h / 60) % 2 - 1))
+    local m = v - c
+
+    local rp, gp, bp
+
+    if h < 60 then
+        rp, gp, bp = c, x, 0
+    elseif h < 120 then
+        rp, gp, bp = x, c, 0
+    elseif h < 180 then
+        rp, gp, bp = 0, c, x
+    elseif h < 240 then
+        rp, gp, bp = 0, x, c
+    elseif h < 300 then
+        rp, gp, bp = x, 0, c
+    else
+        rp, gp, bp = c, 0, x
+    end
+
+    return
+        math.floor((rp + m) * 255 + 0.5),
+        math.floor((gp + m) * 255 + 0.5),
+        math.floor((bp + m) * 255 + 0.5)
+end
+
 local function sendToPanelAndWidget(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":panel", "all", event, payload })
     noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":widget", "all", event, payload })
@@ -56,6 +109,8 @@ local function pleaseChangeColor(color)
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
     local b = tonumber(hex:sub(5, 6), 16)
+    r, g, b = increaseSaturation(r, g, b, 1.3)
+    local hex = string.format("%02X%02X%02X", r, g, b)
     local normalizedColor = "#" .. hex:upper()
 
     noctalia.runAsync({
