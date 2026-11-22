@@ -41,6 +41,47 @@ local function pleaseSetBrightness(brightness)
     end)
 end
 
+local function pleaseChangeColor(color)
+    if type(color) ~= "string" then
+        noctalia.notify(noctalia.tr("messages.invalid_color"))
+        return
+    end
+
+    local hex = color:match("^#(%x%x%x%x%x%x)$")
+    if not hex then
+        noctalia.notify(noctalia.tr("messages.invalid_color"))
+        return
+    end
+
+    local r = tonumber(hex:sub(1, 2), 16)
+    local g = tonumber(hex:sub(3, 4), 16)
+    local b = tonumber(hex:sub(5, 6), 16)
+    local normalizedColor = "#" .. hex:upper()
+
+    noctalia.runAsync({
+        "busctl",
+        "--system",
+        "call",
+        "io.github.smairio.gigactl",
+        "/io/github/smairio/gigactl",
+        "io.github.smairio.gigactl.Control",
+        "SetKeyboardColor",
+        "uuu",
+        tostring(r),
+        tostring(g),
+        tostring(b),
+    }, function(result)
+        if result.exitCode ~= 0 then
+            noctalia.notify(noctalia.tr("messages.color_error") .. tostring(result.stderr))
+            noctalia.log("gigactl: failed to set keyboard color to " .. normalizedColor .. ": " .. tostring(result.stderr))
+            return
+        end
+
+        noctalia.state.set("keyboard-color", normalizedColor)
+        sendToPanelAndWidget("set-keyboard-color", normalizedColor)
+    end)
+end
+
 local function pleaseSetFanSpeed(speed, attempt)
     speed = tonumber(speed)
     attempt = attempt or 1
@@ -178,6 +219,17 @@ function onIpc(event, payload)
 
     if event == "please-set-keyboard-brightness" then
         pleaseSetBrightness(payload)
+        return
+    end
+
+    if event == "please-change-keyboard-color" then
+        pleaseChangeColor(payload)
+        return
+    end
+
+    if event == "please-set-keyboard-color-sync" then
+        noctalia.state.set("keyboard-color-sync", payload == "true")
+        sendToPanelAndWidget("set-keyboard-color-sync", payload)
         return
     end
 end

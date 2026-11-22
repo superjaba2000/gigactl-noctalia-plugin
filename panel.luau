@@ -149,10 +149,10 @@ local function createPanel()
                         controlSize = "md",
                         flexGrow = 3,
                         onChange = function(value)
-
+                            noctalia.state.set("keyboard-color", value)
                         end,
                         onSubmit = function(value)
-
+                            sendToService("please-change-keyboard-color", value)
                         end,
                     }),
                 }),
@@ -165,8 +165,9 @@ local function createPanel()
                     ui.toggle({
                         checked = noctalia.state.get("keyboard-color-sync") or false,
                         onChange = function(value)
-                            noctalia.state.set("keyboard-color-sync", value == "true")
-                            renderPanel(createPanel())
+                            noctalia.state.set("keyboard-color-sync", value)
+                            sendToService("please-set-keyboard-color-sync", tostring(value))
+                            panel.render(createPanel())
                         end,
                     }),
                 }),
@@ -176,7 +177,12 @@ local function createPanel()
 end
 
 function onIpc(event, payload)
-    if event == "set-profile" or event == "set-fan-speed" or event == "set-keyboard-brightness" then
+    if event == "set-profile"
+        or event == "set-fan-speed"
+        or event == "set-keyboard-brightness"
+        or event == "set-keyboard-color"
+        or event == "set-keyboard-color-sync"
+    then
         panel.render(createPanel())
     end
 end
