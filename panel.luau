@@ -1,4 +1,5 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
+local SYSTEM_COLOR_KEY = "secondary"
 
 local function sendToService(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":service", "all", event, payload })
@@ -13,6 +14,9 @@ local function createPanel()
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
     local keyboardBrightness = noctalia.state.get("keyboard-brightness") or 0
+    local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
+    local keyboardColor = keyboardColorSync and noctalia.getColor(SYSTEM_COLOR_KEY) or "#FFFFFF"
+        or (noctalia.state.get("keyboard-color") or "#FFFFFF")
 
     return ui.column({
         gap = 8,
@@ -137,41 +141,49 @@ local function createPanel()
             }),
 
             ui.row({ gap = 24, align = "center" }, {
-                ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
-                    ui.label({
-                        text = noctalia.tr("panel.keyboard.color"),
-                        flexGrow = 1,
-                    }),
-                    ui.input({
-                        value = noctalia.state.get("keyboard-color") or "#FFFFFF",
-                        placeholder = "#RRGGBB",
-                        fontSize = 14,
-                        controlSize = "md",
-                        flexGrow = 3,
-                        onChange = function(value)
-                            noctalia.state.set("keyboard-color", value)
-                        end,
-                        onSubmit = function(value)
-                            sendToService("please-change-keyboard-color", value)
-                        end,
-                    }),
+                ui.label({
+                    text = noctalia.tr("panel.keyboard.as_in_system"),
+                    flexGrow = 0,
                 }),
+                ui.spacer({ flexGrow = 1 }),
+                ui.toggle({
+                    flexGrow = 0,
+                    checked = keyboardColorSync,
+                    onChange = function(value)
+                        noctalia.state.set("keyboard-color-sync", value)
+                        sendToService("please-set-keyboard-color-sync", tostring(value))
 
-                ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
-                    ui.label({
-                        text = noctalia.tr("panel.keyboard.as_in_system"),
-                        flexGrow = 1,
-                    }),
-                    ui.toggle({
-                        checked = noctalia.state.get("keyboard-color-sync") or false,
-                        onChange = function(value)
-                            noctalia.state.set("keyboard-color-sync", value)
-                            sendToService("please-set-keyboard-color-sync", tostring(value))
-                            panel.render(createPanel())
-                        end,
-                    }),
+                        if value then
+                            local system_color = noctalia.getColor() or "#FFFFFF"
+                            sendToService("please-change-keyboard-color", system_color)
+                        end
+
+                        panel.render(createPanel())
+                    end,
                 }),
-            })
+            }),
+
+            ui.column({ height = 8 }, {}),
+
+            ui.row({ gap = 24, align = "center" }, {
+                ui.colorPicker({
+                    value = keyboardColor,
+                    width = 100,
+                    flexGrow = 3,
+                    inputs = "hex",
+                    enabled = not keyboardColorSync,
+                    onChange = function(color)
+                        noctalia.state.set("keyboard-color", color)
+                        sendToService("please-change-keyboard-color", color)
+                        keyboardColor = color
+                        panel.render(createPanel())
+                    end,
+                    onChangeEnd = function(color)
+                        noctalia.state.set("keyboard-color", color)
+                        sendToService("please-change-keyboard-color", color)
+                    end,
+                }),
+            }),
         }),
     })
 end
