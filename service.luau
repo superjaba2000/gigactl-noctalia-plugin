@@ -1,18 +1,16 @@
+local MAX_FAN_ATTEMPTS = 3
+
 local function sendToPanelAndWidget(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:panel", "all", event, payload })
     noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:widget", "all", event, payload })
 end
 
-
 local fanSpeedBusy = false
 local pendingFanSpeed = nil
-local lastFanCommandTime = 0
 
-local FAN_COMMAND_INTERVAL = 1000
-
-
-local function pleaseSetFanSpeed(speed)
+local function pleaseSetFanSpeed(speed, attempt)
     speed = tonumber(speed)
+    attempt = attempt or 1
 
     if not speed or speed < 0 or speed > 100 then
         noctalia.notify("Invalid fan speed")
@@ -21,53 +19,74 @@ local function pleaseSetFanSpeed(speed)
 
     speed = math.floor(speed)
 
-    -- If a command is running, keep only the latest value.
     if fanSpeedBusy then
         pendingFanSpeed = speed
         return
     end
 
-    -- Enforce minimum interval between commands.
-    local now = noctalia.nowMs()
-    local elapsed = now - lastFanCommandTime
-
-    if elapsed < FAN_COMMAND_INTERVAL then
-        pendingFanSpeed = speed
-        return
-    end
-
     fanSpeedBusy = true
-    lastFanCommandTime = now
 
-    noctalia.runAsync({
-        "busctl",
-        "--system",
-        "call",
-        "io.github.smairio.gigactl",
-        "/io/github/smairio/gigactl",
-        "io.github.smairio.gigactl.Control",
-        "SetFanDuty",
-        "uu",
-        "0",
-        tostring(speed),
-    }, function(result)
-        if result.exitCode ~= 0 then
-            noctalia.notify(tostring(result.stderr))
-        else
-            noctalia.state.set("manual-fan-speed", speed)
-            noctalia.state.set("active-profile", "manual")
-            sendToPanelAndWidget("set-fan-speed", tostring(speed))
-        end
-
-        fanSpeedBusy = false
-
-        -- Send the latest pending value if available.
+    local function finish()
         if pendingFanSpeed ~= nil then
             local nextSpeed = pendingFanSpeed
             pendingFanSpeed = nil
-            pleaseSetFanSpeed(nextSpeed)
+            fanSpeedBusy = false
+            pleaseSetFanSpeed(nextSpeed, 1)
+        else
+            fanSpeedBusy = false
         end
-    end)
+    end
+
+    local executeWithAttempt
+
+    local function execute()
+        noctalia.runAsync({
+            "busctl",
+            "--system",
+            "call",
+            "io.github.smairio.gigactl",
+            "/io/github/smairio/gigactl",
+            "io.github.smairio.gigactl.Control",
+            "SetFanDuty",
+            "uu",
+            "0",
+            tostring(speed),
+        }, function(result)
+            if result.exitCode == 0 then
+                noctalia.state.set("manual-fan-speed", speed)
+                noctalia.state.set("active-profile", "manual")
+                sendToPanelAndWidget("set-fan-speed", tostring(speed))
+                sendToPanelAndWidget("set-profile", "manual")
+                finish()
+                return
+            end
+
+            if pendingFanSpeed ~= nil then
+                local nextSpeed = pendingFanSpeed
+                pendingFanSpeed = nil
+                speed = nextSpeed
+                executeWithAttempt(1)
+                return
+            end
+
+            if attempt < MAX_FAN_ATTEMPTS then
+                executeWithAttempt(attempt + 1)
+                return
+            end
+
+            noctalia.notify("Fan speed failed after " .. MAX_FAN_ATTEMPTS .. " attempts. log saved")
+            noctalia.log("gigactl: failed to set fan speed to " .. tostring(speed) .. ": " .. tostring(result.stderr))
+
+            finish()
+        end)
+    end
+
+    executeWithAttempt = function(nextAttempt)
+        attempt = nextAttempt
+        execute()
+    end
+
+    execute()
 end
 
 local function pleaseSetProfile(profile)
@@ -86,15 +105,12 @@ local function pleaseSetProfile(profile)
         return
     end
 
-    noctalia.state.set("active-profile", profile)
-
     if profile == "manual" then
-        local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
-
         local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
         pleaseSetFanSpeed(fanSpeed)
     else
-        local ok = noctalia.runAsync({
+        pendingFanSpeed = nil
+        noctalia.runAsync({
             "busctl",
             "--system",
             "call",
@@ -104,15 +120,17 @@ local function pleaseSetProfile(profile)
             "SetProfile",
             "s",
             profile,
-        })
+        }, function(result)
+            if result.exitCode ~= 0 then
+                noctalia.notify("Cooling profile failed: " .. tostring(result.stderr))
+                return
+            end
 
-        if not ok then
-            noctalia.notify("Failed to start busctl")
-            return
-        end
+            noctalia.state.set("active-profile", profile)
+            sendToPanelAndWidget("set-profile", profile)
+        end)
+        return
     end
-
-    sendToPanelAndWidget("set-profile", profile)
 end
 
 
