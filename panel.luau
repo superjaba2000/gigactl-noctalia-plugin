@@ -154,7 +154,7 @@ local function createPanel()
                         sendToService("please-set-keyboard-color-sync", tostring(value))
 
                         if value then
-                            local system_color = noctalia.getColor() or "#FFFFFF"
+                            local system_color = noctalia.getColor(SYSTEM_COLOR_KEY) or "#FFFFFF"
                             sendToService("please-change-keyboard-color", system_color)
                         end
 
