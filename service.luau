@@ -14,7 +14,7 @@ local function pleaseSetFanSpeed(speed, attempt)
     attempt = attempt or 1
 
     if not speed or speed < 0 or speed > 100 then
-        noctalia.notify("Invalid fan speed")
+        noctalia.notify(noctalia.tr("messages.invalid_speed"))
         return
     end
 
@@ -75,7 +75,7 @@ local function pleaseSetFanSpeed(speed, attempt)
                 return
             end
 
-            noctalia.notify("Fan speed failed after " .. MAX_FAN_ATTEMPTS .. " attempts. log saved")
+            noctalia.notify(noctalia.tr("messages.fan_error"))
             noctalia.log("gigactl: failed to set fan speed to " .. tostring(speed) .. ": " .. tostring(result.stderr))
 
             finish()
@@ -91,18 +91,16 @@ local function pleaseSetFanSpeed(speed, attempt)
 end
 
 local function pleaseSetProfile(profile)
-    local labels = {
-        quiet = "Quiet",
-        balanced = "Balanced",
-        performance = "Performance",
-        max = "MAX",
-        manual = "Manual",
+    local profiles = {
+        quiet = true,
+        balanced = true,
+        performance = true,
+        max = true,
+        manual = true,
     }
 
-    local label = labels[profile]
-
-    if not label then
-        noctalia.notify("Unknown cooling profile: " .. tostring(profile))
+    if not profiles[profile] then
+        noctalia.notify(noctalia.tr("messages.unknown_profile") .. tostring(profile))
         return
     end
 
@@ -123,7 +121,7 @@ local function pleaseSetProfile(profile)
             profile,
         }, function(result)
             if result.exitCode ~= 0 then
-                noctalia.notify("Cooling profile failed: " .. tostring(result.stderr))
+                noctalia.notify(noctalia.tr("messages.profile_error") .. tostring(result.stderr))
                 return
             end
 
@@ -160,7 +158,7 @@ local function readProfile()
         "ActiveProfile",
     }, function(result)
         if result.exitCode ~= 0 then
-            noctalia.notify("gigactl: failed to read active profile")
+            noctalia.notify(noctalia.tr("messages.read_profile_error"))
             return
         end
 
@@ -173,7 +171,6 @@ local function readProfile()
 end
 
 function onEnable()
-    -- noctalia.notify("gigactl plugin started")
     noctalia.setUpdateInterval(UPDATE_INTERVAL)
     readProfile()
 end

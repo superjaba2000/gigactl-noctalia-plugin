@@ -14,12 +14,12 @@ local function createPanel()
     }, {
         ui.row({ gap = 8, align = "center" }, {
             ui.glyph({ name = "gauge", size = 18, color = "text-muted"}),
-            ui.label({ text = "Cooling profile:", fontStyle = "bold" }),
+            ui.label({ text = noctalia.tr("panel.title"), fontStyle = "bold" }),
         }),
 
         ui.row({ gap = 8, align = "center" }, {
             ui.button({
-                text = "Quiet",
+                text = noctalia.tr("panel.quiet"),
                 flexGrow = 1,
                 selected = activeProfile == "quiet",
                 onClick = function() 
@@ -27,7 +27,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = "Balanced",
+                text = noctalia.tr("panel.balanced"),
                 flexGrow = 1,
                 selected = activeProfile == "balanced",
                 onClick = function() 
@@ -35,7 +35,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = "Performance",
+                text = noctalia.tr("panel.performance"),
                 flexGrow = 1,
                 selected = activeProfile == "performance",
                 onClick = function() 
@@ -43,7 +43,7 @@ local function createPanel()
                 end,
             }),
             ui.button({
-                text = "MAX",
+                text = noctalia.tr("panel.max"),
                 flexGrow = 1,
                 selected = activeProfile == "max",
                 onClick = function() 
@@ -52,9 +52,9 @@ local function createPanel()
             }),
         }),
 
-        ui.row({ gap = 18, align = "center" }, {
+        ui.row({ gap = 24, align = "center" }, {
             ui.button({
-                text = "Manual",
+                text = noctalia.tr("panel.manual"),
                 flexGrow = 1,
                 selected = activeProfile == "manual",
                 onClick = function() 
@@ -62,29 +62,31 @@ local function createPanel()
                 end,
             }),
 
-            ui.slider({
-                value = manualFanSpeed,
-                enabled = activeProfile == "manual",
-                min = 0,
-                max = 100,
-                step = 1,
-                flexGrow = 2.5,
+            ui.row({ gap = 8, align = "center", flexGrow = 3 }, {
+                ui.slider({
+                    value = manualFanSpeed,
+                    enabled = activeProfile == "manual",
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    flexGrow = 1,
 
-                onChange = function(value)
-                    noctalia.state.set("manual-fan-speed", tonumber(value))
-                    panel.render(createPanel())
-                end,
+                    onChange = function(value)
+                        noctalia.state.set("manual-fan-speed", tonumber(value))
+                        panel.render(createPanel())
+                    end,
 
-                onDragEnd = function()
-                    local speed = noctalia.state.get("manual-fan-speed") or 0
+                    onDragEnd = function()
+                        local speed = noctalia.state.get("manual-fan-speed") or 0
 
-                    sendToService("please-set-fan-speed", tostring(speed))
-                end,
-            }),
+                        sendToService("please-set-fan-speed", tostring(speed))
+                    end,
+                }),
 
-            ui.label({
-                text = tostring(manualFanSpeed) .. "%",
-                flexGrow = 0,
+                ui.label({
+                    text = tostring(manualFanSpeed) .. "%",
+                    flexGrow = 0,
+                }),
             }),
         }),
     })
