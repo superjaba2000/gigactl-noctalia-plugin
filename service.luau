@@ -1,8 +1,9 @@
+local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
 local MAX_FAN_ATTEMPTS = 3
 
 local function sendToPanelAndWidget(event, payload)
-    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:panel", "all", event, payload })
-    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:widget", "all", event, payload })
+    noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":panel", "all", event, payload })
+    noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":widget", "all", event, payload })
 end
 
 local fanSpeedBusy = false

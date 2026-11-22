@@ -1,3 +1,5 @@
+local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
+
 function update()
     noctalia.setUpdateInterval(1000)
 
@@ -5,5 +7,5 @@ function update()
 end
 
 function onClick()
-    noctalia.togglePanel("superjaba2000/gigactl:panel")
+    noctalia.togglePanel(PLUGIN_ID .. ":panel")
 end

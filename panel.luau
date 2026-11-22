@@ -1,16 +1,21 @@
+local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
+
 local function sendToService(event, payload)
-    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:service", "all", event, payload })
+    noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":service", "all", event, payload })
 end
 
 local function createPanel()
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
-    local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 0
+    local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
 
     return ui.column({
         gap = 12,
         padding = 16,
     }, {
-        ui.label({ text = "Cooling profile" }),
+        ui.row({ gap = 8, align = "center" }, {
+            ui.glyph({ name = "gauge", size = 18, color = "text-muted"}),
+            ui.label({ text = "Cooling profile:", fontStyle = "bold" }),
+        }),
 
         ui.row({ gap = 8, align = "center" }, {
             ui.button({
