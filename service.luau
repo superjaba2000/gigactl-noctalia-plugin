@@ -3,6 +3,14 @@ local function sendToPanelAndWidget(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:widget", "all", event, payload })
 end
 
+
+local fanSpeedBusy = false
+local pendingFanSpeed = nil
+local lastFanCommandTime = 0
+
+local FAN_COMMAND_INTERVAL = 1000
+
+
 local function pleaseSetFanSpeed(speed)
     speed = tonumber(speed)
 
@@ -12,6 +20,24 @@ local function pleaseSetFanSpeed(speed)
     end
 
     speed = math.floor(speed)
+
+    -- If a command is running, keep only the latest value.
+    if fanSpeedBusy then
+        pendingFanSpeed = speed
+        return
+    end
+
+    -- Enforce minimum interval between commands.
+    local now = noctalia.nowMs()
+    local elapsed = now - lastFanCommandTime
+
+    if elapsed < FAN_COMMAND_INTERVAL then
+        pendingFanSpeed = speed
+        return
+    end
+
+    fanSpeedBusy = true
+    lastFanCommandTime = now
 
     noctalia.runAsync({
         "busctl",
@@ -27,13 +53,20 @@ local function pleaseSetFanSpeed(speed)
     }, function(result)
         if result.exitCode ~= 0 then
             noctalia.notify(tostring(result.stderr))
-            return
+        else
+            noctalia.state.set("manual-fan-speed", speed)
+            noctalia.state.set("active-profile", "manual")
+            sendToPanelAndWidget("set-fan-speed", tostring(speed))
         end
 
-        noctalia.state.set("manual-fan-speed", speed)
-        noctalia.state.set("active-profile", "manual")
+        fanSpeedBusy = false
 
-        sendToPanelAndWidget("set-fan-speed", tostring(speed))
+        -- Send the latest pending value if available.
+        if pendingFanSpeed ~= nil then
+            local nextSpeed = pendingFanSpeed
+            pendingFanSpeed = nil
+            pleaseSetFanSpeed(nextSpeed)
+        end
     end)
 end
 
@@ -59,7 +92,7 @@ local function pleaseSetProfile(profile)
         local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
 
         local fanSpeed = noctalia.state.get("manual-fan-speed") or 0
-        setFanSpeed(fanSpeed)
+        pleaseSetFanSpeed(fanSpeed)
     else
         local ok = noctalia.runAsync({
             "busctl",
