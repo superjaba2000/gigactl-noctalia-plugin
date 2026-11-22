@@ -12,6 +12,9 @@ A plugin for [Noctalia Shell](https://github.com/noctalia-dev/noctalia-shell) th
   - **Performance** — high-performance mode.
   - **MAX** — maximum cooling.
 - Manual fan speed control in **Manual** mode.
+- Keyboard backlight brightness adjustment.
+- Keyboard backlight color selection.
+- Option to synchronize the keyboard backlight color with the primary system color.
 
 ## Dependencies
 
