@@ -10,7 +10,8 @@
       "fan_speed": "Fan speed"
     },
     "keyboard": {
-      "title": "Keyboard backlight"
+      "title": "Keyboard backlight",
+      "brightness": "Brightness"
     }
   },
   "messages": {

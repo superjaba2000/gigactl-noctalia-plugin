@@ -4,12 +4,18 @@ local function sendToService(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":service", "all", event, payload })
 end
 
+local function formatPercentage(value)
+    local text = tostring(value) .. "%"
+    return string.rep(" ", 4 - #text) .. text
+end
+
 local function createPanel()
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
+    local keyboardBrightness = noctalia.state.get("keyboard-brightness") or 0
 
     return ui.column({
-        gap = 12,
+        gap = 8,
         padding = 16,
     }, {
 
@@ -17,7 +23,7 @@ local function createPanel()
 
         ui.row({ gap = 8, align = "center" }, {
             ui.glyph({ name = "car-fan", size = 18, color = "text-muted"}),
-            ui.label({ text = noctalia.tr("panel.cooling.title"), fontStyle = "bold" }),
+            ui.label({ text = noctalia.tr("panel.cooling.title"), fontWeight = "bold", fontSize = 14 }),
         }),
 
         ui.row({ gap = 8, align = "center" }, {
@@ -87,7 +93,7 @@ local function createPanel()
                 }),
 
                 ui.label({
-                    text = tostring(manualFanSpeed) .. "%",
+                    text = formatPercentage(manualFanSpeed),
                     flexGrow = 0,
                 }),
             }),
@@ -95,11 +101,41 @@ local function createPanel()
 
         -- KEYBOARD BACKLIGHT
 
-        ui.row({ gap = 8, align = "center" }, {
-            ui.glyph({ name = "keyboard", size = 18, color = "text-muted"}),
-            ui.label({ text = noctalia.tr("panel.keyboard.title"), fontStyle = "bold" }),
-        }),
+        ui.column({ height = 12 }, {}),
 
+        ui.column({ gap = 0 }, {
+            ui.row({ gap = 8, align = "center" }, {
+                ui.glyph({ name = "keyboard", size = 18, color = "text-muted"}),
+                ui.label({ text = noctalia.tr("panel.keyboard.title"), fontWeight = "bold", fontSize = 14 }),
+            }),
+
+            ui.row({ gap = 24, align = "center" }, {
+                ui.label({
+                    text = noctalia.tr("panel.keyboard.brightness"),
+                    align = "center",
+                    flexGrow = 1,
+                }),
+
+                ui.row({ gap = 8, align = "center", flexGrow = 3 }, {
+                    ui.slider({
+                        value = noctalia.state.get("keyboard-brightness") or 0,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        flexGrow = 3,
+                        onChange = function(value)
+                            noctalia.state.set("keyboard-brightness", tonumber(value))
+                            panel.render(createPanel())
+                            sendToService("please-set-keyboard-brightness", tostring(value))
+                        end,
+                    }),
+                    ui.label({
+                        text = formatPercentage(keyboardBrightness),
+                        flexGrow = 0,
+                    }),
+                }),
+            }),
+        }),
     })
 end
 

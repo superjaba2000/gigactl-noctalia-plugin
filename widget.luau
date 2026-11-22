@@ -1,5 +1,7 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
 
+local ALWAYS_USE_GAUGE_GLYPH = true
+
 function update()
     noctalia.setUpdateInterval(1000)
 
@@ -13,6 +15,11 @@ function update()
 
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
     local glyph = glyphs[activeProfile] or "gauge"
+    
+    if ALWAYS_USE_GAUGE_GLYPH then
+        glyph = "gauge"
+    end
+
     barWidget.setGlyph(glyph)
 end
 
