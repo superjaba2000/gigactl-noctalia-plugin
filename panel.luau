@@ -135,6 +135,42 @@ local function createPanel()
                     }),
                 }),
             }),
+
+            ui.row({ gap = 24, align = "center" }, {
+                ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
+                    ui.label({
+                        text = noctalia.tr("panel.keyboard.color"),
+                        flexGrow = 1,
+                    }),
+                    ui.input({
+                        value = noctalia.state.get("keyboard-color") or "#FFFFFF",
+                        placeholder = "#RRGGBB",
+                        fontSize = 14,
+                        controlSize = "md",
+                        flexGrow = 3,
+                        onChange = function(value)
+
+                        end,
+                        onSubmit = function(value)
+
+                        end,
+                    }),
+                }),
+
+                ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
+                    ui.label({
+                        text = noctalia.tr("panel.keyboard.as_in_system"),
+                        flexGrow = 1,
+                    }),
+                    ui.toggle({
+                        checked = noctalia.state.get("keyboard-color-sync") or false,
+                        onChange = function(value)
+                            noctalia.state.set("keyboard-color-sync", value == "true")
+                            renderPanel(createPanel())
+                        end,
+                    }),
+                }),
+            })
         }),
     })
 end
