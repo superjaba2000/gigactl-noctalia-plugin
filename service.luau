@@ -172,7 +172,8 @@ local function readProfile()
     end)
 end
 
-function onRun()
+function onEnable()
+    -- noctalia.notify("gigactl plugin started")
     noctalia.setUpdateInterval(UPDATE_INTERVAL)
     readProfile()
 end

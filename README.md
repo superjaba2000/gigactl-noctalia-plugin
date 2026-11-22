@@ -30,7 +30,7 @@ The plugin does not control the fans directly. All hardware control operations a
 ### Noctalia Shell
 
 - Noctalia Shell 5.5.0 or later.
-- Plugin API 53.
+- Plugin API 43.
 
 ## Usage
 

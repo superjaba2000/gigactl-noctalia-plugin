@@ -1,17 +1,18 @@
 id = "superjaba2000/gigactl-noctalia-plugin"
 name = "Gigactl"
+icon = "gauge"
+description = "Gigabyte laptop hardware control"
+author = "superjaba2000"
 version = "0.1.0"
 plugin_api = 43
-author = "superjaba2000"
-description = "Gigabyte laptop hardware control"
-icon = "gauge"
+dependencies = ["gigactl", "busctl"]
 
 [[widget]]
 id = "gigactl"
 entry = "widget.luau"
 
 [[panel]]
-id = "panel"
+id = "panel"    
 entry = "panel.luau"
 placement = "attached"
 width = 580

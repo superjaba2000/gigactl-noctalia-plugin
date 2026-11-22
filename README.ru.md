@@ -30,7 +30,7 @@
 ### Noctalia Shell
 
 - Noctalia Shell 5.5.0 или новее.
-- Plugin API 53.
+- Plugin API 43.
 
 ## Использование
 
