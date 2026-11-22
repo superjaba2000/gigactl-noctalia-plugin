@@ -1,3 +1,15 @@
+local function sendToService(event, payload)
+    noctalia.runAsync({
+        "noctalia",
+        "msg",
+        "plugin",
+        "superjaba2000/gigactl:service",
+        "all",
+        event,
+        payload,
+    })
+end
+
 local function createPanel()
     local activeProfile = noctalia.state.get("active-profile") or "unknown"
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 0
@@ -14,7 +26,7 @@ local function createPanel()
                 flexGrow = 1,
                 selected = activeProfile == "quiet",
                 onClick = function() 
-                    pleaseSetProfile("quiet") 
+                    sendToService("please-set-profile", "quiet") 
                 end,
             }),
             ui.button({
@@ -22,7 +34,7 @@ local function createPanel()
                 flexGrow = 1,
                 selected = activeProfile == "balanced",
                 onClick = function() 
-                    pleaseSetProfile("balanced") 
+                    sendToService("please-set-profile", "balanced") 
                 end,
             }),
             ui.button({
@@ -30,7 +42,7 @@ local function createPanel()
                 flexGrow = 1,
                 selected = activeProfile == "performance",
                 onClick = function() 
-                    pleaseSetProfile("performance") 
+                    sendToService("please-set-profile", "performance") 
                 end,
             }),
             ui.button({
@@ -38,18 +50,18 @@ local function createPanel()
                 flexGrow = 1,
                 selected = activeProfile == "max",
                 onClick = function() 
-                    pleaseSetProfile("max") 
+                    sendToService("please-set-profile", "max") 
                 end,
             }),
         }),
 
         ui.row({ gap = 18, align = "center" }, {
             ui.button({
-                text = "manual",
+                text = "Manual",
                 flexGrow = 1,
                 selected = activeProfile == "manual",
                 onClick = function() 
-                    pleaseSetProfile("manual") 
+                    sendToService("please-set-profile", "manual") 
                 end,
             }),
 
@@ -58,7 +70,7 @@ local function createPanel()
                 min = 0,
                 max = 100,
                 step = 1,
-                flexGrow = 3,
+                flexGrow = 2.5,
 
                 onChange = function(value)
                     noctalia.state.set("manual-fan-speed", tonumber(value))
@@ -67,39 +79,22 @@ local function createPanel()
                 onDragEnd = function()
                     local speed = noctalia.state.get("manual-fan-speed") or 0
 
-                    noctalia.runAsync({
-                        "noctalia",
-                        "msg",
-                        "plugin",
-                        "superjaba2000/gigactl:service",
-                        "all",
-                        "set-fan-speed",
-                        tostring(speed),
-                    })
+                    sendToService("please-set-fan-speed", tostring(speed))
                 end,
-            })
+            }),
+
+            ui.label({
+                text = tostring(manualFanSpeed) .. "%",
+                flexGrow = 0,
+            }),
         }),
     })
 end
 
-function pleaseSetProfile(profile)
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:service",
-        "all",
-        "please-set-profile",
-        profile,
-    })
-end
-
 function onIpc(event, payload)
-    if event ~= "set-profile" then
-        return
+    if event == "set-profile" or event == "set-fan-speed" then
+        panel.render(createPanel())
     end
-
-    panel.render(createPanel())
 end
 
 function onOpen()

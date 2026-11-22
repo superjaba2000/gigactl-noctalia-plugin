@@ -1,4 +1,26 @@
-local function setFanSpeed(speed)
+local function sendToPanelAndWidget(event, payload)
+    noctalia.runAsync({
+        "noctalia",
+        "msg",
+        "plugin",
+        "superjaba2000/gigactl:panel",
+        "all",
+        event,
+        payload,
+    })
+
+    noctalia.runAsync({
+        "noctalia",
+        "msg",
+        "plugin",
+        "superjaba2000/gigactl:widget",
+        "all",
+        event,
+        payload,
+    })
+end
+
+local function pleaseSetFanSpeed(speed)
     speed = tonumber(speed)
 
     if not speed or speed < 0 or speed > 100 then
@@ -27,6 +49,8 @@ local function setFanSpeed(speed)
 
         noctalia.state.set("manual-fan-speed", speed)
         noctalia.state.set("active-profile", "manual")
+
+        sendToPanelAndWidget("set-fan-speed", tostring(speed))
     end)
 end
 
@@ -72,25 +96,7 @@ local function pleaseSetProfile(profile)
         end
     end
 
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:panel",
-        "all",
-        "set-profile",
-        profile,
-    })
-
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:widget",
-        "all",
-        "set-profile",
-        profile,
-    })
+    sendToPanelAndWidget("set-profile", profile)
 end
 
 
@@ -100,8 +106,8 @@ function onIpc(event, payload)
         return
     end
 
-    if event == "set-fan-speed" then
-        setFanSpeed(payload)
+    if event == "please-set-fan-speed" then
+        pleaseSetFanSpeed(payload)
         return
     end
 end
