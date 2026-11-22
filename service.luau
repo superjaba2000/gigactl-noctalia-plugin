@@ -1,23 +1,6 @@
 local function sendToPanelAndWidget(event, payload)
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:panel",
-        "all",
-        event,
-        payload,
-    })
-
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:widget",
-        "all",
-        event,
-        payload,
-    })
+    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:panel", "all", event, payload })
+    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:widget", "all", event, payload })
 end
 
 local function pleaseSetFanSpeed(speed)
@@ -43,7 +26,7 @@ local function pleaseSetFanSpeed(speed)
         tostring(speed),
     }, function(result)
         if result.exitCode ~= 0 then
-            noctalia.notify("Failed to set fan speed")
+            noctalia.notify(tostring(result.stderr))
             return
         end
 

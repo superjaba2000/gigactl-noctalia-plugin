@@ -1,13 +1,5 @@
 local function sendToService(event, payload)
-    noctalia.runAsync({
-        "noctalia",
-        "msg",
-        "plugin",
-        "superjaba2000/gigactl:service",
-        "all",
-        event,
-        payload,
-    })
+    noctalia.runAsync({"noctalia", "msg", "plugin", "superjaba2000/gigactl:service", "all", event, payload })
 end
 
 local function createPanel()
@@ -74,6 +66,7 @@ local function createPanel()
 
                 onChange = function(value)
                     noctalia.state.set("manual-fan-speed", tonumber(value))
+                    panel.render(createPanel())
                 end,
 
                 onDragEnd = function()
