@@ -1,14 +1,4 @@
 {
-  "settings": {
-    "system_color_key": {
-      "label": "System color",
-      "description": "Which color from the system palette to use for the keyboard backlight.",
-      "primary": "primary",
-      "secondary": "secondary",
-      "tertiary": "tertiary",
-      "error": "error"
-    }
-  },
   "panel": {
     "cooling": {
       "title": "Cooling profile",
@@ -23,7 +13,11 @@
       "title": "Keyboard backlight",
       "brightness": "Brightness",
       "color": "Color",
-      "as_in_system": "Set color as in system"
+      "as_in_system": "Set color as in system",
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "tertiary": "Tertiary",
+      "error": "Error"
     }
   },
   "messages": {

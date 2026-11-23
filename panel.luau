@@ -14,9 +14,26 @@ local function createPanel()
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
     local keyboardBrightness = noctalia.state.get("keyboard-brightness") or 0
     local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
-    local system_color_key = noctalia.getConfig("system-color-key") or "secondary"
-    local keyboardColor = keyboardColorSync and noctalia.getColor(system_color_key) or "#FFFFFF"
-        or (noctalia.state.get("keyboard-color") or "#FFFFFF")
+    local systemColorKey = noctalia.state.get("system-color-key") or "secondary"
+    local keyboardColor
+
+    if keyboardColorSync then
+        keyboardColor = noctalia.getColor(systemColorKey) or "#FFFFFF"
+    else
+        keyboardColor = noctalia.state.get("keyboard-color") or "#FFFFFF"
+    end
+
+    local selectedColorKeyIndex = 0
+
+    if systemColorKey == "primary" then
+        selectedColorKeyIndex = 0
+    elseif systemColorKey == "secondary" then
+        selectedColorKeyIndex = 1
+    elseif systemColorKey == "tertiary" then
+        selectedColorKeyIndex = 2
+    elseif systemColorKey == "error" then
+        selectedColorKeyIndex = 3
+    end
 
     return ui.column({
         gap = 8,
@@ -146,6 +163,42 @@ local function createPanel()
                     flexGrow = 0,
                 }),
                 ui.spacer({ flexGrow = 1 }),
+                ui.select({
+                    enabled = keyboardColorSync,
+                    options = {
+                        noctalia.tr("panel.keyboard.primary"),
+                        noctalia.tr("panel.keyboard.secondary"),
+                        noctalia.tr("panel.keyboard.tertiary"),
+                        noctalia.tr("panel.keyboard.error"),
+                    },
+                    selectedIndex = selectedColorKeyIndex,
+                    controlSize = "md",
+                    onChange = function(index)
+                        local numericIndex = tonumber(index)
+                        if numericIndex == nil then
+                            return
+                        end
+
+                        local colorKey = numericIndex == 0 and "primary"
+                            or numericIndex == 1 and "secondary"
+                            or numericIndex == 2 and "tertiary"
+                            or numericIndex == 3 and "error"
+                            or nil
+
+                        if not colorKey then
+                            return
+                        end
+
+                        noctalia.state.set("system-color-key", colorKey)
+
+                        if keyboardColorSync then
+                            local systemColor = noctalia.getColor(colorKey) or "#FFFFFF"
+                            sendToService("please-change-keyboard-color", systemColor)
+                        end
+
+                        panel.render(createPanel())
+                    end,
+                }),
                 ui.toggle({
                     flexGrow = 0,
                     checked = keyboardColorSync,
@@ -154,9 +207,9 @@ local function createPanel()
                         sendToService("please-set-keyboard-color-sync", tostring(value))
 
                         if value then
-                            local system_color_key = noctalia.getConfig("system-color-key") or "secondary"
-                            local system_color = noctalia.getColor(system_color_key) or "#FFFFFF"
-                            sendToService("please-change-keyboard-color", system_color)
+                            local systemColorKey = noctalia.state.get("system-color-key") or "secondary"
+                            local systemColor = noctalia.getColor(systemColorKey) or "#FFFFFF"
+                            sendToService("please-change-keyboard-color", systemColor)
                         end
 
                         panel.render(createPanel())
@@ -177,11 +230,13 @@ local function createPanel()
                         noctalia.state.set("keyboard-color", color)
                         sendToService("please-change-keyboard-color", color)
                         keyboardColor = color
-                        panel.render(createPanel())
+                        --panel.render(createPanel())
                     end,
                     onChangeEnd = function(color)
                         noctalia.state.set("keyboard-color", color)
                         sendToService("please-change-keyboard-color", color)
+                        keyboardColor = color
+                        --panel.render(createPanel())
                     end,
                 }),
             }),
@@ -193,7 +248,7 @@ function onIpc(event, payload)
     if event == "set-profile"
         or event == "set-fan-speed"
         or event == "set-keyboard-brightness"
-        or event == "set-keyboard-color"
+        --or event == "set-keyboard-color"
         or event == "set-keyboard-color-sync"
     then
         panel.render(createPanel())

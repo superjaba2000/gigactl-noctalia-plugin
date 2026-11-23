@@ -63,6 +63,20 @@ end
 local fanSpeedBusy = false
 local pendingFanSpeed = nil
 
+local function normalizedSaturatedColor(color)
+    local hex = type(color) == "string" and color:match("^#(%x%x%x%x%x%x)$")
+    if not hex then
+        return nil
+    end
+
+    local r = tonumber(hex:sub(1, 2), 16)
+    local g = tonumber(hex:sub(3, 4), 16)
+    local b = tonumber(hex:sub(5, 6), 16)
+    r, g, b = increaseSaturation(r, g, b, 1.3)
+
+    return string.format("#%02X%02X%02X", r, g, b)
+end
+
 local function pleaseSetBrightness(brightness)
     brightness = tonumber(brightness)
 
@@ -110,9 +124,9 @@ local function pleaseChangeColor(color)
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
     local b = tonumber(hex:sub(5, 6), 16)
+    local hex0 = string.format("%02X%02X%02X", r, g, b)
+    local normalizedColor = "#" .. hex0:upper()
     r, g, b = increaseSaturation(r, g, b, 1.3)
-    local hex = string.format("%02X%02X%02X", r, g, b)
-    local normalizedColor = "#" .. hex:upper()
 
     noctalia.runAsync({
         "busctl",
@@ -129,7 +143,6 @@ local function pleaseChangeColor(color)
     }, function(result)
         if result.exitCode ~= 0 then
             noctalia.notify(noctalia.tr("messages.color_error") .. tostring(result.stderr))
-            noctalia.log("gigactl: failed to set keyboard color to " .. normalizedColor .. ": " .. tostring(result.stderr))
             return
         end
 
@@ -321,11 +334,13 @@ function update()
     noctalia.setUpdateInterval(UPDATE_INTERVAL)
 
     -- readProfile()
-    local system_color= noctalia.getColor(noctalia.getConfig("system-color-key")) or "#FFFFFF"
+    local systemColorKey = noctalia.state.get("system-color-key") or "secondary"
+    local systemColor = noctalia.getColor(systemColorKey) or "#FFFFFF"
+    local normalizedColor = normalizedSaturatedColor(systemColor)
     local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
     local keyboardColor = noctalia.state.get("keyboard-color") or "#FFFFFF"
 
-    if keyboardColorSync and keyboardColor ~= system_color then
-        pleaseChangeColor(system_color)
+    if keyboardColorSync and (normalizedColor ~= keyboardColor) then
+        pleaseChangeColor(systemColor)
     end
 end

@@ -7,19 +7,6 @@ version = "1.0.0"
 plugin_api = 43
 dependencies = ["gigactl", "busctl"]
 
-[[setting]]
-key = "system-color-key"
-type = "select"
-label_key = "settings.system_color_key.label"
-description_key = "settings.system_color_key.description"
-default = "secondary"
-options = [
-    { value = "primary", label_key = "settings.system_color_key.primary" },
-    { value = "secondary", label_key = "settings.system_color_key.secondary" },
-    { value = "tertiary", label_key = "settings.system_color_key.tertiary" },
-    { value = "error", label_key = "settings.system_color_key.error" },
-]
-
 [[widget]]
 id = "gigactl"
 entry = "widget.luau"
