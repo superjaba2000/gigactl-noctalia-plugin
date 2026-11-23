@@ -1,5 +1,4 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
-local SYSTEM_COLOR_KEY = "secondary"
 
 local function sendToService(event, payload)
     noctalia.runAsync({"noctalia", "msg", "plugin", PLUGIN_ID .. ":service", "all", event, payload })
@@ -15,7 +14,8 @@ local function createPanel()
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
     local keyboardBrightness = noctalia.state.get("keyboard-brightness") or 0
     local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
-    local keyboardColor = keyboardColorSync and noctalia.getColor(SYSTEM_COLOR_KEY) or "#FFFFFF"
+    local system_color_key = noctalia.state.get("system-color-key") or "secondary"
+    local keyboardColor = keyboardColorSync and noctalia.getColor(system_color_key) or "#FFFFFF"
         or (noctalia.state.get("keyboard-color") or "#FFFFFF")
 
     return ui.column({
@@ -154,7 +154,7 @@ local function createPanel()
                         sendToService("please-set-keyboard-color-sync", tostring(value))
 
                         if value then
-                            local system_color = noctalia.getColor(SYSTEM_COLOR_KEY) or "#FFFFFF"
+                            local system_color = noctalia.getColor(system_color_key) or "#FFFFFF"
                             sendToService("please-change-keyboard-color", system_color)
                         end
 

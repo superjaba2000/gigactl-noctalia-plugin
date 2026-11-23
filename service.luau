@@ -1,5 +1,7 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
 local MAX_FAN_ATTEMPTS = 3
+local UPDATE_INTERVAL = 1000
+local SYSTEM_COLOR_KEY = "secondary"
 
 local function increaseSaturation(r, g, b, factor)
     r, g, b = r / 255, g / 255, b / 255
@@ -289,8 +291,6 @@ function onIpc(event, payload)
     end
 end
 
-local UPDATE_INTERVAL = 2000
-
 local function readProfile()
     noctalia.runAsync({
         "busctl",
@@ -315,10 +315,20 @@ local function readProfile()
 end
 
 function onEnable()
-    noctalia.setUpdateInterval(UPDATE_INTERVAL)
+    noctalia.state.set("system-color-key", SYSTEM_COLOR_KEY)
+
     readProfile()
 end
 
 function update()
-    readProfile()
+    noctalia.setUpdateInterval(UPDATE_INTERVAL)
+
+    -- readProfile()
+    local system_color= noctalia.getColor(SYSTEM_COLOR_KEY) or "#FFFFFF"
+    local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
+    local keyboardColor = noctalia.state.get("keyboard-color") or "#FFFFFF"
+
+    if keyboardColorSync and keyboardColor ~= system_color then
+        pleaseChangeColor(system_color)
+    end
 end
