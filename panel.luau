@@ -14,7 +14,7 @@ local function createPanel()
     local manualFanSpeed = noctalia.state.get("manual-fan-speed") or 24
     local keyboardBrightness = noctalia.state.get("keyboard-brightness") or 0
     local keyboardColorSync = noctalia.state.get("keyboard-color-sync") or false
-    local system_color_key = noctalia.state.get("system-color-key") or "secondary"
+    local system_color_key = noctalia.getConfig("system-color-key") or "secondary"
     local keyboardColor = keyboardColorSync and noctalia.getColor(system_color_key) or "#FFFFFF"
         or (noctalia.state.get("keyboard-color") or "#FFFFFF")
 
@@ -154,6 +154,7 @@ local function createPanel()
                         sendToService("please-set-keyboard-color-sync", tostring(value))
 
                         if value then
+                            local system_color_key = noctalia.getConfig("system-color-key") or "secondary"
                             local system_color = noctalia.getColor(system_color_key) or "#FFFFFF"
                             sendToService("please-change-keyboard-color", system_color)
                         end

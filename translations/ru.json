@@ -1,4 +1,14 @@
 {
+  "settings": {
+    "system_color_key": {
+      "label": "Системный цвет",
+      "description": "Какой цвет из системной палитры использовать для подсветки клавиатуры.",
+      "primary": "primary",
+      "secondary": "secondary",
+      "tertiary": "tertiary",
+      "error": "error"
+    }
+  },
   "panel": {
     "cooling": {
       "title": "Профиль охлаждения",
