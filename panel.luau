@@ -37,7 +37,7 @@ local function createPanel()
 
     return ui.column({
         gap = 8,
-        padding = 16,
+        padding = 0,
     }, {
 
         -- COOLING PROFILES
@@ -217,12 +217,13 @@ local function createPanel()
                 }),
             }),
 
-            ui.column({ height = 8 }, {}),
+            ui.column({ height = 4 }, {}),
 
-            ui.row({ gap = 24, align = "center" }, {
+            ui.row({ gap = 8, align = "center", height = 20 }, {
                 ui.colorPicker({
                     value = keyboardColor,
                     width = 100,
+                    height = 20,
                     flexGrow = 3,
                     inputs = "hex",
                     enabled = not keyboardColorSync,

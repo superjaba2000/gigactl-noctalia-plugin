@@ -1,6 +1,6 @@
 local PLUGIN_ID = "superjaba2000/gigactl-noctalia-plugin"
 local MAX_FAN_ATTEMPTS = 3
-local UPDATE_INTERVAL = 1000
+local UPDATE_INTERVAL = 800
 
 local function increaseSaturation(r, g, b, factor)
     r, g, b = r / 255, g / 255, b / 255
@@ -320,8 +320,9 @@ local function readProfile()
 
         local profile = result.stdout:match('"([^"]+)"')
 
-        if profile then
+        if profile ~= noctalia.state.get("active-profile") then
             noctalia.state.set("active-profile", profile)
+            sendToPanelAndWidget("set-profile", profile)
         end
     end)
 end
@@ -333,7 +334,7 @@ end
 function update()
     noctalia.setUpdateInterval(UPDATE_INTERVAL)
 
-    -- readProfile()
+    readProfile()
     local systemColorKey = noctalia.state.get("system-color-key") or "secondary"
     local systemColor = noctalia.getColor(systemColorKey) or "#FFFFFF"
     local normalizedColor = normalizedSaturatedColor(systemColor)
